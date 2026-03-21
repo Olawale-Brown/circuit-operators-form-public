@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Circuit Operator Network – Application</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700;800&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --red:#C8102E; --red-dark:#9b0c22; --red-faint:#fff5f5;
+    --dark:#111; --mid:#444; --light:#888;
+    --bg:#EFEFEF; --white:#fff; --border:#E0E0E0; --border-strong:#CCC;
+    --input-bg:#FAFAFA; --shadow:0 1px 12px rgba(0,0,0,0.07);
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--dark);font-size:14px;line-height:1.5}
+
+  /* HEADER */
+  .form-header{background:#111;position:relative;overflow:hidden}
+  .hdr-accent{position:absolute;top:0;right:0;width:280px;height:100%;background:var(--red);clip-path:polygon(18% 0%,100% 0%,100% 100%,0% 100%);opacity:.12}
+  .hdr-inner{max-width:700px;margin:0 auto;padding:36px 24px 32px;position:relative;z-index:1}
+  .logo-wrap{margin-bottom:22px}
+  .logo-wrap img{height:42px;width:auto;filter:brightness(0) invert(1)}
+  .hdr-eyebrow{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:600;letter-spacing:3px;text-transform:uppercase;color:var(--red);margin-bottom:8px}
+  .hdr-title{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:clamp(26px,5vw,38px);color:#fff;line-height:1.05;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px}
+  .hdr-title span{color:var(--red)}
+  .hdr-sub{color:#777;font-size:13px;font-weight:300;max-width:460px;line-height:1.6}
+
+  /* PROGRESS */
+  .prog-wrap{background:#1a1a1a;border-bottom:1px solid #2a2a2a;padding:10px 24px}
+  .prog-inner{max-width:700px;margin:0 auto;display:flex;align-items:center;gap:14px}
+  .prog-bg{flex:1;height:3px;background:#333}
+  .prog-fill{height:100%;background:var(--red);transition:width .4s ease;width:0%}
+  .prog-lbl{font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#666;white-space:nowrap}
+
+  /* BODY */
+  .form-body{max-width:700px;margin:0 auto;padding:20px 16px 64px}
+
+  /* SECTION */
+  .section{background:var(--white);margin-bottom:2px;border-left:3px solid transparent;transition:border-color .2s}
+  .section:hover{border-left-color:var(--red)}
+  .sec-hdr{padding:14px 24px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px;background:#FAFAFA}
+  .sec-num{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:11px;letter-spacing:2px;color:var(--red);text-transform:uppercase;border:1.5px solid var(--red);padding:2px 7px;flex-shrink:0}
+  .sec-title{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:15px;color:var(--dark);text-transform:uppercase;letter-spacing:1.5px}
+  .sec-body{padding:18px 24px 22px}
+
+  /* FIELDS */
+  .field{margin-bottom:15px}
+  .field:last-child{margin-bottom:0}
+  .field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .field-row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+  @media(max-width:520px){.field-row,.field-row3{grid-template-columns:1fr}}
+
+  label{display:block;font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--mid);margin-bottom:5px}
+  label .req{color:var(--red);margin-left:2px}
+  label .opt{color:#bbb;font-weight:400;letter-spacing:0;text-transform:none;font-size:11px;margin-left:4px}
+
+  input[type=text],input[type=email],input[type=tel],input[type=url],input[type=number],select,textarea{
+    width:100%;padding:10px 12px;background:var(--input-bg);border:1.5px solid var(--border);
+    font-family:'Barlow',sans-serif;font-size:14px;color:var(--dark);
+    transition:border-color .15s,background .15s;outline:none;-webkit-appearance:none;border-radius:0
+  }
+  input:focus,select:focus,textarea:focus{border-color:var(--red);background:#fff}
+  input::placeholder,textarea::placeholder{color:#ccc}
+  textarea{resize:vertical;min-height:72px}
+  input.invalid,select.invalid{border-color:var(--red)!important;background:#fff8f8!important}
+  .field-hint{font-size:11px;color:#bbb;margin-top:4px}
+
+  .phone-wrap{display:flex;gap:8px}
+  .phone-wrap select{width:110px;flex-shrink:0}
+  .phone-wrap input{flex:1}
+
+  /* SERVICES GRID */
+  .svc-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  @media(max-width:480px){.svc-grid{grid-template-columns:1fr}}
+  .svc-card{position:relative}
+  .svc-card input[type=checkbox]{position:absolute;opacity:0;width:0;height:0}
+  .svc-card label{display:flex;align-items:center;gap:10px;padding:11px 14px;border:1.5px solid var(--border);cursor:pointer;background:var(--input-bg);transition:all .15s;color:var(--mid);font-family:'Barlow',sans-serif;font-size:13px;font-weight:400;text-transform:none;letter-spacing:0;margin:0;user-select:none}
+  .svc-card label:hover{border-color:var(--red);background:var(--red-faint);color:var(--dark)}
+  .svc-card input:checked+label{border-color:var(--red);background:var(--red-faint);color:var(--dark)}
+  .svc-box{width:16px;height:16px;border:2px solid var(--border-strong);flex-shrink:0;position:relative;transition:all .15s;background:white}
+  .svc-card input:checked+label .svc-box{background:var(--red);border-color:var(--red)}
+  .svc-box::after{content:'';position:absolute;left:3px;top:0;width:5px;height:9px;border:2px solid white;border-top:none;border-left:none;transform:rotate(45deg);opacity:0;transition:opacity .1s}
+  .svc-card input:checked+label .svc-box::after{opacity:1}
+
+  /* CONDITIONAL */
+  .cond-sec{display:none;margin-top:14px;border:1px solid #E8D0D0;background:#FFFAFA}
+  .cond-sec.visible{display:block;animation:slideDown .25s ease}
+  @keyframes slideDown{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+  .cond-hdr{background:var(--red);padding:8px 16px;display:flex;align-items:center;gap:8px}
+  .cond-hdr span{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;color:white;text-transform:uppercase;letter-spacing:2px}
+  .cond-body{padding:16px 16px 18px}
+
+  /* PILLS */
+  .chk-group{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+  .chk-pill{position:relative}
+  .chk-pill input[type=checkbox]{position:absolute;opacity:0;width:0;height:0}
+  .chk-pill label{display:inline-flex;align-items:center;padding:6px 12px;border:1.5px solid var(--border);cursor:pointer;background:white;font-family:'Barlow',sans-serif;font-size:12px;font-weight:400;color:var(--mid);transition:all .15s;margin:0;white-space:nowrap;text-transform:none;letter-spacing:0}
+  .chk-pill label:hover{border-color:var(--red);color:var(--red)}
+  .chk-pill input:checked+label{background:var(--red);border-color:var(--red);color:white;font-weight:500}
+
+  .rad-group{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
+  .rad-pill{position:relative}
+  .rad-pill input[type=radio]{position:absolute;opacity:0;width:0;height:0}
+  .rad-pill label{display:inline-flex;align-items:center;padding:7px 16px;border:1.5px solid var(--border);cursor:pointer;background:white;font-family:'Barlow',sans-serif;font-size:13px;font-weight:400;color:var(--mid);transition:all .15s;margin:0;text-transform:none;letter-spacing:0}
+  .rad-pill label:hover{border-color:var(--red);color:var(--red)}
+  .rad-pill input:checked+label{background:var(--red);border-color:var(--red);color:white;font-weight:500}
+
+  /* CAPACITY */
+  .cap-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+  @media(max-width:480px){.cap-grid{grid-template-columns:repeat(2,1fr)}}
+  .cap-opt{position:relative}
+  .cap-opt input{position:absolute;opacity:0;width:0;height:0}
+  .cap-opt label{display:block;text-align:center;padding:14px 8px;border:1.5px solid var(--border);cursor:pointer;background:white;font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:600;color:var(--mid);transition:all .15s;margin:0;line-height:1.2;letter-spacing:.5px}
+  .cap-opt label small{display:block;font-size:10px;font-weight:400;letter-spacing:1px;text-transform:uppercase;margin-top:2px}
+  .cap-opt label:hover{border-color:var(--red);color:var(--red)}
+  .cap-opt input:checked+label{background:var(--red);border-color:var(--red);color:white}
+
+  /* DECLARATION */
+  .decl-stmt{border-left:3px solid var(--red);padding:12px 16px;background:#FAFAFA;font-size:13px;color:var(--mid);line-height:1.7;margin-bottom:18px}
+  .autofill{background:#F2FAF5;border:1px solid #BDD8C5;padding:12px 16px;margin-bottom:16px;display:grid;gap:4px}
+  .af-row{display:flex;gap:8px;font-size:13px}
+  .af-key{color:#4a8a5e;font-weight:600;font-family:'Barlow Condensed',sans-serif;letter-spacing:1px;text-transform:uppercase;font-size:11px;min-width:80px;padding-top:1px}
+  .af-val{color:var(--dark)}
+  .agree-wrap{display:flex;align-items:flex-start;gap:12px;cursor:pointer;margin-bottom:18px}
+  .agree-wrap input[type=checkbox]{width:16px;height:16px;flex-shrink:0;margin-top:2px;accent-color:var(--red);cursor:pointer}
+  .agree-wrap span{font-size:13px;color:var(--mid);line-height:1.6}
+  .sig-hint{font-size:11px;color:#aaa;margin-top:4px}
+  .sec-div{height:1px;background:var(--border);margin:14px 0}
+
+  /* SUBMIT */
+  .submit-wrap{text-align:center;margin-top:24px}
+  .btn-submit{display:inline-flex;align-items:center;gap:12px;background:var(--red);color:white;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:15px;letter-spacing:3px;text-transform:uppercase;padding:16px 48px 16px 40px;border:none;cursor:pointer;transition:all .2s;clip-path:polygon(0 0,calc(100% - 14px) 0,100% 50%,calc(100% - 14px) 100%,0 100%)}
+  .btn-submit:hover{background:var(--red-dark);transform:translateX(3px)}
+  .btn-submit:disabled{opacity:.6;cursor:not-allowed;transform:none}
+  .spinner{display:none;width:16px;height:16px;border:2px solid rgba(255,255,255,.35);border-top-color:white;border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .status-banner{display:none;padding:12px 16px;font-size:13px;margin-bottom:14px;line-height:1.5}
+  .status-banner.sending{display:flex;align-items:center;gap:10px;background:#FAFAFA;border:1px solid var(--border);color:var(--mid)}
+  .status-banner.error-state{display:block;background:#fff8f8;border-left:3px solid var(--red);color:#7a1a1a}
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:#111;color:white;padding:12px 28px;font-family:'Barlow Condensed',sans-serif;letter-spacing:1px;font-size:13px;font-weight:500;z-index:9999;transition:transform .3s ease;white-space:nowrap}
+  .toast.show{transform:translateX(-50%) translateY(0)}
+  .toast.error{background:var(--red)}
+  .form-footer{text-align:center;margin-top:14px;font-size:11px;letter-spacing:1px;color:#aaa;text-transform:uppercase}
+
+  /* SUCCESS */
+  .success-screen{display:none}
+  .success-screen.visible{display:block}
+  .success-inner{background:white;padding:56px 32px;text-align:center;border-top:4px solid var(--red)}
+  .success-logo{margin-bottom:24px}
+  .success-logo img{height:36px;width:auto}
+  .success-title{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:30px;color:var(--dark);text-transform:uppercase;letter-spacing:2px;margin-bottom:4px}
+  .success-title span{color:var(--red)}
+  .success-line{width:48px;height:3px;background:var(--red);margin:16px auto}
+  .success-sub{color:var(--mid);font-size:14px;max-width:420px;margin:0 auto;line-height:1.8}
+  .success-ref{display:inline-block;margin-top:20px;border:1.5px solid var(--border);padding:10px 24px;font-family:'Barlow Condensed',sans-serif;letter-spacing:2px;font-size:13px;color:var(--mid)}
+  .success-ref strong{color:var(--red)}
+</style>
+
+</head>
+<body>
+<script>
+const CONFIG = {
+  FORMSPREE_ID: "YOUR_FORMSPREE_ID",
+  GOOGLE_SCRIPT_URL: "YOUR_GOOGLE_SCRIPT_URL"
+};
+</script>
+
+<div class="form-header">
+  <div class="hdr-accent"></div>
+  <div class="hdr-inner">
+    <div class="logo-wrap"><img src="data:image/png;base64,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" alt="Circuit"></div>
+    <div class="hdr-eyebrow">Operator Network</div>
+    <div class="hdr-title">Network <span>Application</span></div>
+    <div class="hdr-sub">Join the Circuit Operator Network and get matched with verified international shipment opportunities across our global network.</div>
+  </div>
+</div>
+
+<div class="prog-wrap">
+  <div class="prog-inner">
+    <div class="prog-bg"><div class="prog-fill" id="progFill"></div></div>
+    <div class="prog-lbl" id="progLbl">0% Complete</div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="form-body">
+<form id="mainForm" novalidate>
+
+  <!-- 01 COMPANY -->
+  <div class="section">
+    <div class="sec-hdr"><div class="sec-num">01</div><div class="sec-title">Company Information</div></div>
+    <div class="sec-body">
+      <div class="field"><label>Company Name <span class="req">*</span></label><input type="text" id="companyName" placeholder="Legal company name" required></div>
+      <div class="field"><label>Registered Address <span class="req">*</span></label><input type="text" id="regAddr" placeholder="Street address, city, postcode" required></div>
+      <div class="field-row">
+        <div class="field"><label>Country of Operation <span class="req">*</span></label>
+          <select id="regCountry" required>
+            <option value="">Select country…</option>
+            <option>China</option><option>India</option><option>Nigeria</option><option>South Africa</option>
+            <option>Tanzania</option><option>Spain</option><option>United Kingdom</option><option>United States</option>
+            <option>Germany</option><option>France</option><option>Netherlands</option><option>Singapore</option>
+            <option>UAE</option><option>Kenya</option><option>Ghana</option><option>Brazil</option>
+            <option>Mexico</option><option>Pakistan</option><option>Bangladesh</option><option>Indonesia</option><option>Other</option>
+          </select>
+        </div>
+        <div class="field"><label>Company Registration No. <span class="req">*</span></label><input type="text" id="regNum" placeholder="e.g. RC123456" required></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Year Established <span class="req">*</span></label><input type="number" id="yearEst" placeholder="e.g. 2010" min="1900" max="2025" required></div>
+        <div class="field"><label>Company Website</label><input type="url" id="website" placeholder="https://yourcompany.com"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 02 CONTACT -->
+  <div class="section">
+    <div class="sec-hdr"><div class="sec-num">02</div><div class="sec-title">Primary Contact</div></div>
+    <div class="sec-body">
+      <div class="field-row">
+        <div class="field"><label>Full Name <span class="req">*</span></label><input type="text" id="contactName" placeholder="First and last name" required></div>
+        <div class="field"><label>Position / Title <span class="req">*</span></label><input type="text" id="contactPos" placeholder="e.g. Operations Manager" required></div>
+      </div>
+      <div class="field"><label>Email Address <span class="req">*</span></label><input type="email" id="contactEmail" placeholder="name@company.com" required></div>
+      <div class="field"><label>Phone Number <span class="req">*</span></label>
+        <div class="phone-wrap">
+          <select id="phoneCode">
+            <option value="+86">🇨🇳 +86</option><option value="+91">🇮🇳 +91</option><option value="+234">🇳🇬 +234</option>
+            <option value="+27">🇿🇦 +27</option><option value="+255">🇹🇿 +255</option><option value="+34">🇪🇸 +34</option>
+            <option value="+44">🇬🇧 +44</option><option value="+1">🇺🇸 +1</option><option value="+49">🇩🇪 +49</option>
+            <option value="+31">🇳🇱 +31</option><option value="+65">🇸🇬 +65</option><option value="+971">🇦🇪 +971</option>
+            <option value="+254">🇰🇪 +254</option><option value="+233">🇬🇭 +233</option><option value="+55">🇧🇷 +55</option>
+          </select>
+          <input type="tel" id="phoneNum" placeholder="Phone number" required>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  
+<div class="section">
+  <div class="sec-hdr"><div class="sec-num">03</div><div class="sec-title">Services Provided</div></div>
+  <div class="sec-body">
+    <div class="field">
+      <label>Select all services your company provides <span class="req">*</span></label>
+      <p class="field-hint" style="margin-bottom:12px;font-size:12px;color:#999;">Tick one or more — additional capability questions appear for each service selected.</p>
+      <div class="svc-grid" id="svcGrid">
+        <div class="svc-card"><input type="checkbox" id="s_truck" onchange="toggle('truck',this.checked)"><label for="s_truck"><div class="svc-box"></div><span>🚚</span> Trucking / Inland Transport</label></div>
+        <div class="svc-card"><input type="checkbox" id="s_ff" onchange="toggle('ff',this.checked)"><label for="s_ff"><div class="svc-box"></div><span>📦</span> Freight Forwarding</label></div>
+        <div class="svc-card"><input type="checkbox" id="s_wh" onchange="toggle('wh',this.checked)"><label for="s_wh"><div class="svc-box"></div><span>🏭</span> Warehousing / Storage</label></div>
+        <div class="svc-card"><input type="checkbox" id="s_cust" onchange="toggle('cust',this.checked)"><label for="s_cust"><div class="svc-box"></div><span>📋</span> Customs Brokerage / Clearance</label></div>
+        <div class="svc-card"><input type="checkbox" id="s_port" onchange="toggle('port',this.checked)"><label for="s_port"><div class="svc-box"></div><span>⚓</span> Port / Terminal Handling</label></div>
+        <div class="svc-card"><input type="checkbox" id="s_dray" onchange="toggle('dray',this.checked)"><label for="s_dray"><div class="svc-box"></div><span>🔄</span> Container Drayage</label></div>
+        <div class="svc-card"><input type="checkbox" id="s_air" onchange="toggle('air',this.checked)"><label for="s_air"><div class="svc-box"></div><span>✈️</span> Air Freight Handling</label></div>
+        <div class="svc-card"><input type="checkbox" id="s_ocn" onchange="toggle('ocn',this.checked)"><label for="s_ocn"><div class="svc-box"></div><span>🚢</span> Ocean Freight Handling</label></div>
+        <div class="svc-card"><input type="checkbox" id="s_lm" onchange="toggle('lm',this.checked)"><label for="s_lm"><div class="svc-box"></div><span>🏠</span> Last-Mile Delivery</label></div>
+        <div class="svc-card"><input type="checkbox" id="s_cgo" onchange="toggle('cgo',this.checked)"><label for="s_cgo"><div class="svc-box"></div><span>📫</span> Cargo Consolidation / Deconsolidation</label></div>
+      </div>
+    </div>
+
+    <!-- TRUCKING -->
+    <div class="cond-sec" id="c_truck">
+      <div class="cond-hdr"><span>▶ Trucking / Inland Transport — Capability Details</span></div>
+      <div class="cond-body">
+        <div class="field-row">
+          <div class="field"><label>Total trucks in fleet</label><input type="number" id="tr_fleet" placeholder="e.g. 25"></div>
+          <div class="field"><label>Avg. shipments/containers per day</label><input type="number" id="tr_daily" placeholder="e.g. 15"></div>
+        </div>
+        <div class="field"><label>Truck types available</label>
+          <div class="chk-group">
+            <div class="chk-pill"><input type="checkbox" id="tt1" value="Container Chassis"><label for="tt1">Container Chassis</label></div>
+            <div class="chk-pill"><input type="checkbox" id="tt2" value="Box Trucks"><label for="tt2">Box Trucks</label></div>
+            <div class="chk-pill"><input type="checkbox" id="tt3" value="Flatbed"><label for="tt3">Flatbed Trucks</label></div>
+            <div class="chk-pill"><input type="checkbox" id="tt4" value="Refrigerated"><label for="tt4">Refrigerated Trucks</label></div>
+            <div class="chk-pill"><input type="checkbox" id="tt5" value="Heavy Haul"><label for="tt5">Heavy Haul / Oversized</label></div>
+          </div>
+        </div>
+        <div class="field"><label>Container handling capability</label>
+          <div class="chk-group">
+            <div class="chk-pill"><input type="checkbox" id="tc1" value="20ft"><label for="tc1">20ft</label></div>
+            <div class="chk-pill"><input type="checkbox" id="tc2" value="40ft"><label for="tc2">40ft</label></div>
+            <div class="chk-pill"><input type="checkbox" id="tc3" value="Reefer"><label for="tc3">Reefer</label></div>
+          </div>
+        </div>
+        <div class="field"><label>Special transport capabilities</label>
+          <div class="chk-group">
+            <div class="chk-pill"><input type="checkbox" id="ts1" value="Dangerous Goods (ADR)"><label for="ts1">Dangerous Goods (ADR)</label></div>
+            <div class="chk-pill"><input type="checkbox" id="ts2" value="Temperature-Controlled"><label for="ts2">Temperature-Controlled</label></div>
+            <div class="chk-pill"><input type="checkbox" id="ts3" value="Oversized Cargo"><label for="ts3">Oversized Cargo</label></div>
+            <div class="chk-pill"><input type="checkbox" id="ts4" value="High-Value Cargo"><label for="ts4">High-Value Cargo</label></div>
+            <div class="chk-pill"><input type="checkbox" id="ts5" value="Express Transport"><label for="ts5">Express Transport</label></div>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Cross-border trucking?</label>
+            <div class="rad-group" style="margin-top:8px">
+              <div class="rad-pill"><input type="radio" name="tr_cross" id="trc_y" value="Yes"><label for="trc_y">Yes</label></div>
+              <div class="rad-pill"><input type="radio" name="tr_cross" id="trc_n" value="No"><label for="trc_n">No</label></div>
+            </div>
+          </div>
+          <div class="field"><label>GPS tracking on trucks?</label>
+            <div class="rad-group" style="margin-top:8px">
+              <div class="rad-pill"><input type="radio" name="tr_gps" id="tg_y" value="Yes"><label for="tg_y">Yes</label></div>
+              <div class="rad-pill"><input type="radio" name="tr_gps" id="tg_n" value="No"><label for="tg_n">No</label></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FREIGHT FORWARDING -->
+    <div class="cond-sec" id="c_ff">
+      <div class="cond-hdr"><span>▶ Freight Forwarding — Capability Details</span></div>
+      <div class="cond-body">
+        <div class="field-row">
+          <div class="field"><label>Years of experience</label><input type="number" id="ff_yrs" placeholder="e.g. 10"></div>
+          <div class="field"><label>Avg. shipments per month</label><input type="number" id="ff_mth" placeholder="e.g. 200"></div>
+        </div>
+        <div class="field"><label>Modes of freight handled</label>
+          <div class="chk-group">
+            <div class="chk-pill"><input type="checkbox" id="fm1" value="Ocean Freight"><label for="fm1">Ocean Freight</label></div>
+            <div class="chk-pill"><input type="checkbox" id="fm2" value="Air Freight"><label for="fm2">Air Freight</label></div>
+            <div class="chk-pill"><input type="checkbox" id="fm3" value="Road Freight"><label for="fm3">Road Freight</label></div>
+            <div class="chk-pill"><input type="checkbox" id="fm4" value="Rail Freight"><label for="fm4">Rail Freight</label></div>
+            <div class="chk-pill"><input type="checkbox" id="fm5" value="Multimodal"><label for="fm5">Multimodal</label></div>
+          </div>
+        </div>
+        <div class="field"><label>Primary trade lanes / routes</label><input type="text" id="ff_lanes" placeholder="e.g. China–Nigeria, India–UK"></div>
+        <div class="field"><label>Import / export direction</label>
+          <div class="rad-group" style="margin-top:8px">
+            <div class="rad-pill"><input type="radio" name="ff_dir" id="ffd1" value="Import only"><label for="ffd1">Import only</label></div>
+            <div class="rad-pill"><input type="radio" name="ff_dir" id="ffd2" value="Export only"><label for="ffd2">Export only</label></div>
+            <div class="rad-pill"><input type="radio" name="ff_dir" id="ffd3" value="Both"><label for="ffd3">Both</label></div>
+          </div>
+        </div>
+        <div class="field"><label>Additional freight services</label>
+          <div class="chk-group">
+            <div class="chk-pill"><input type="checkbox" id="fa1" value="Project Cargo"><label for="fa1">Project Cargo</label></div>
+            <div class="chk-pill"><input type="checkbox" id="fa2" value="Oversized Cargo"><label for="fa2">Oversized Cargo</label></div>
+            <div class="chk-pill"><input type="checkbox" id="fa3" value="Dangerous Goods"><label for="fa3">Dangerous Goods</label></div>
+            <div class="chk-pill"><input type="checkbox" id="fa4" value="Temperature Controlled"><label for="fa4">Temperature Controlled</label></div>
+            <div class="chk-pill"><input type="checkbox" id="fa5" value="Express Cargo"><label for="fa5">Express Cargo</label></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- WAREHOUSING -->
+    <div class="cond-sec" id="c_wh">
+      <div class="cond-hdr"><span>▶ Warehousing / Storage — Capability Details</span></div>
+      <div class="cond-body">
+        <div class="field-row">
+          <div class="field"><label>Warehouse locations</label><input type="text" id="wh_loc" placeholder="City / region"></div>
+          <div class="field"><label>Total capacity (sqm or pallet spaces)</label><input type="text" id="wh_cap" placeholder="e.g. 5,000 sqm"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Avg. storage volume per month</label><input type="text" id="wh_vol" placeholder="e.g. 800 CBM"></div>
+          <div class="field"><label>Bonded warehouse?</label>
+            <div class="rad-group" style="margin-top:8px">
+              <div class="rad-pill"><input type="radio" name="wh_bond" id="wb_y" value="Yes"><label for="wb_y">Yes</label></div>
+              <div class="rad-pill"><input type="radio" name="wh_bond" id="wb_n" value="No"><label for="wb_n">No</label></div>
+            </div>
+          </div>
+        </div>
+        <div class="field"><label>Temperature controlled storage?</label>
+          <div class="rad-group" style="margin-top:8px">
+            <div class="rad-pill"><input type="radio" name="wh_temp" id="wt_y" value="Yes"><label for="wt_y">Yes</label></div>
+            <div class="rad-pill"><input type="radio" name="wh_temp" id="wt_n" value="No"><label for="wt_n">No</label></div>
+          </div>
+        </div>
+        <div class="field"><label>Warehouse services provided</label>
+          <div class="chk-group">
+            <div class="chk-pill"><input type="checkbox" id="ws1" value="Pallet Storage"><label for="ws1">Pallet Storage</label></div>
+            <div class="chk-pill"><input type="checkbox" id="ws2" value="Container Unloading"><label for="ws2">Container Unloading</label></div>
+            <div class="chk-pill"><input type="checkbox" id="ws3" value="Container Stuffing"><label for="ws3">Container Stuffing</label></div>
+            <div class="chk-pill"><input type="checkbox" id="ws4" value="Pick and Pack"><label for="ws4">Pick and Pack</label></div>
+            <div class="chk-pill"><input type="checkbox" id="ws5" value="Cross-Docking"><label for="ws5">Cross-Docking</label></div>
+            <div class="chk-pill"><input type="checkbox" id="ws6" value="Inventory Management"><label for="ws6">Inventory Management</label></div>
+            <div class="chk-pill"><input type="checkbox" id="ws7" value="Order Fulfillment"><label for="ws7">Order Fulfillment</label></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CUSTOMS -->
+    <div class="cond-sec" id="c_cust">
+      <div class="cond-hdr"><span>▶ Customs Brokerage / Clearance — Capability Details</span></div>
+      <div class="cond-body">
+        <div class="field-row">
+          <div class="field"><label>Customs license number</label><input type="text" id="cu_lic" placeholder="Broker license number"></div>
+          <div class="field"><label>Avg. clearances per month</label><input type="number" id="cu_mth" placeholder="e.g. 150"></div>
+        </div>
+        <div class="field"><label>Countries where you provide customs clearance</label><input type="text" id="cu_ctry" placeholder="e.g. Nigeria, Ghana, UK"></div>
+        <div class="field"><label>Ports / airports / border points covered</label><input type="text" id="cu_pts" placeholder="e.g. Apapa, Tin Can, Heathrow"></div>
+        <div class="field-row3">
+          <div class="field"><label>Export clearance?</label>
+            <div class="rad-group" style="margin-top:8px">
+              <div class="rad-pill"><input type="radio" name="cu_exp" id="cex_y" value="Yes"><label for="cex_y">Yes</label></div>
+              <div class="rad-pill"><input type="radio" name="cu_exp" id="cex_n" value="No"><label for="cex_n">No</label></div>
+            </div>
+          </div>
+          <div class="field"><label>Import clearance?</label>
+            <div class="rad-group" style="margin-top:8px">
+              <div class="rad-pill"><input type="radio" name="cu_imp" id="cim_y" value="Yes"><label for="cim_y">Yes</label></div>
+              <div class="rad-pill"><input type="radio" name="cu_imp" id="cim_n" value="No"><label for="cim_n">No</label></div>
+            </div>
+          </div>
+          <div class="field"><label>Digital customs filing?</label>
+            <div class="rad-group" style="margin-top:8px">
+              <div class="rad-pill"><input type="radio" name="cu_dig" id="cdi_y" value="Yes"><label for="cdi_y">Yes</label></div>
+              <div class="rad-pill"><input type="radio" name="cu_dig" id="cdi_n" value="No"><label for="cdi_n">No</label></div>
+            </div>
+          </div>
+        </div>
+        <div class="field"><label>Additional customs services</label>
+          <div class="chk-group">
+            <div class="chk-pill"><input type="checkbox" id="ca1" value="Duty & Tax Advisory"><label for="ca1">Duty & Tax Advisory</label></div>
+            <div class="chk-pill"><input type="checkbox" id="ca2" value="HS Code Classification"><label for="ca2">HS Code Classification</label></div>
+            <div class="chk-pill"><input type="checkbox" id="ca3" value="Temporary Import/Export"><label for="ca3">Temporary Import/Export</label></div>
+            <div class="chk-pill"><input type="checkbox" id="ca4" value="Transit Documentation"><label for="ca4">Transit Documentation</label></div>
+            <div class="chk-pill"><input type="checkbox" id="ca5" value="Trade Compliance Support"><label for="ca5">Trade Compliance Support</label></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PORT/TERMINAL -->
+    <div class="cond-sec" id="c_port">
+      <div class="cond-hdr"><span>▶ Port / Terminal Handling — Capability Details</span></div>
+      <div class="cond-body">
+        <div class="field-row">
+          <div class="field"><label>Which port(s) do you operate in?</label><input type="text" id="pt_ports" placeholder="e.g. Lagos, Durban, Shanghai"></div>
+          <div class="field"><label>Avg. containers handled per day</label><input type="number" id="pt_daily" placeholder="e.g. 50"></div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Handle container operations?</label>
+            <div class="rad-group" style="margin-top:8px">
+              <div class="rad-pill"><input type="radio" name="pt_cont" id="pc_y" value="Yes"><label for="pc_y">Yes</label></div>
+              <div class="rad-pill"><input type="radio" name="pt_cont" id="pc_n" value="No"><label for="pc_n">No</label></div>
+            </div>
+          </div>
+          <div class="field"><label>Operate port equipment?</label>
+            <div class="rad-group" style="margin-top:8px">
+              <div class="rad-pill"><input type="radio" name="pt_equip" id="pe_y" value="Yes"><label for="pe_y">Yes</label></div>
+              <div class="rad-pill"><input type="radio" name="pt_equip" id="pe_n" value="No"><label for="pe_n">No</label></div>
+            </div>
+          </div>
+        </div>
+        <div class="field"><label>Port services provided</label>
+          <div class="chk-group">
+            <div class="chk-pill"><input type="checkbox" id="ps1" value="Container Loading"><label for="ps1">Container Loading</label></div>
+            <div class="chk-pill"><input type="checkbox" id="ps2" value="Container Unloading"><label for="ps2">Container Unloading</label></div>
+            <div class="chk-pill"><input type="checkbox" id="ps3" value="Container Yard Handling"><label for="ps3">Container Yard Handling</label></div>
+            <div class="chk-pill"><input type="checkbox" id="ps4" value="Cargo Inspection Support"><label for="ps4">Cargo Inspection Support</label></div>
+            <div class="chk-pill"><input type="checkbox" id="ps5" value="Documentation Handling"><label for="ps5">Documentation Handling</label></div>
+            <div class="chk-pill"><input type="checkbox" id="ps6" value="Equipment Handling"><label for="ps6">Equipment Handling</label></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONTAINER DRAYAGE -->
+    <div class="cond-sec" id="c_dray">
+      <div class="cond-hdr"><span>▶ Container Drayage — Capability Details</span></div>
+      <div class="cond-body">
+        <div class="field-row">
+          <div class="field"><label>Ports / terminals where you provide drayage</label><input type="text" id="dr_ports" placeholder="e.g. Apapa, Mombasa"></div>
+          <div class="field"><label>Avg. containers moved per day</label><input type="number" id="dr_daily" placeholder="e.g. 30"></div>
+        </div>
+        <div class="field"><label>Drayage direction</label>
+          <div class="rad-group" style="margin-top:8px">
+            <div class="rad-pill"><input type="radio" name="dr_dir" id="dd1" value="Import containers"><label for="dd1">Import</label></div>
+            <div class="rad-pill"><input type="radio" name="dr_dir" id="dd2" value="Export containers"><label for="dd2">Export</label></div>
+            <div class="rad-pill"><input type="radio" name="dr_dir" id="dd3" value="Both import and export"><label for="dd3">Both</label></div>
+          </div>
+        </div>
+        <div class="field"><label>Own container chassis?</label>
+          <div class="rad-group" style="margin-top:8px">
+            <div class="rad-pill"><input type="radio" name="dr_chas" id="dc_y" value="Yes"><label for="dc_y">Yes</label></div>
+            <div class="rad-pill"><input type="radio" name="dr_chas" id="dc_n" value="No"><label for="dc_n">No</label></div>
+          </div>
+        </div>
+        <div class="field"><label>Additional drayage services</label>
+          <div class="chk-group">
+            <div class="chk-pill"><input type="checkbox" id="da1" value="Container Pickup & Delivery"><label for="da1">Container Pickup & Delivery</label></div>
+            <div class="chk-pill"><input type="checkbox" id="da2" value="Rail Terminal Drayage"><label for="da2">Rail Terminal Drayage</label></div>
+            <div class="chk-pill"><input type="checkbox" id="da3" value="Port Terminal Drayage"><label for="da3">Port Terminal Drayage</label></div>
+            <div class="chk-pill"><input type="checkbox" id="da4" value="Empty Container Repositioning"><label for="da4">Empty Container Repositioning</label></div>
+            <div class="chk-pill"><input type="checkbox" id="da5" value="Yard Storage Coordination"><label for="da5">Yard Storage Coordination</label></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AIR FREIGHT -->
+    <div class="cond-sec" id="c_air">
+      <div class="cond-hdr"><span>▶ Air Freight Handling — Capability Details</span></div>
+      <div class="cond-body">
+        <div class="field-row">
+          <div class="field"><label>Which airport(s) do you operate?</label><input type="text" id="air_ap" placeholder="e.g. LOS, LHR, PVG"></div>
+          <div class="field"><label>Avg. air cargo shipments per month</label><input type="number" id="air_mth" placeholder="e.g. 80"></div>
+        </div>
+        <div class="field"><label>Import / export direction</label>
+          <div class="rad-group" style="margin-top:8px">
+            <div class="rad-pill"><input type="radio" name="air_dir" id="aird1" value="Import only"><label for="aird1">Import only</label></div>
+            <div class="rad-pill"><input type="radio" name="air_dir" id="aird2" value="Export only"><label for="aird2">Export only</label></div>
+            <div class="rad-pill"><input type="radio" name="air_dir" id="aird3" value="Both"><label for="aird3">Both</label></div>
+          </div>
+        </div>
+        <div class="field"><label>Types of cargo handled</label>
+          <div class="chk-group">
+            <div class="chk-pill"><input type="checkbox" id="act1" value="General Cargo"><label for="act1">General Cargo</label></div>
+            <div class="chk-pill"><input type="checkbox" id="act2" value="Dangerous Goods"><label for="act2">Dangerous Goods</label></div>
+            <div class="chk-pill"><input type="checkbox" id="act3" value="Temperature-Controlled"><label for="act3">Temperature-Controlled</label></div>
+            <div class="chk-pill"><input type="checkbox" id="act4" value="Perishable Cargo"><label for="act4">Perishable Cargo</label></div>
+            <div class="chk-pill"><input type="checkbox" id="act5" value="High-Value Cargo"><label for="act5">High-Value Cargo</label></div>
+          </div>
+        </div>
+        <div class="field"><label>Service type</label>
+          <div class="rad-group" style="margin-top:8px">
+            <div class="rad-pill"><input type="radio" name="air_svc" id="as1" value="Cargo Handling"><label for="as1">Cargo Handling</label></div>
+            <div class="rad-pill"><input type="radio" name="air_svc" id="as2" value="Freight Forwarding Coordination"><label for="as2">Freight Forwarding Coordination</label></div>
+            <div class="rad-pill"><input type="radio" name="air_svc" id="as3" value="Both"><label for="as3">Both</label></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- OCEAN FREIGHT -->
+    <div class="cond-sec" id="c_ocn">
+      <div class="cond-hdr"><span>▶ Ocean Freight Handling — Capability Details</span></div>
+      <div class="cond-body">
+        <div class="field-row">
+          <div class="field"><label>Which port(s) do you operate at?</label><input type="text" id="ocn_pts" placeholder="e.g. Shanghai, Apapa, Felixstowe"></div>
+          <div class="field"><label>Avg. containers handled per month</label><input type="number" id="ocn_mth" placeholder="e.g. 200"></div>
+        </div>
+        <div class="field"><label>Import / export direction</label>
+          <div class="rad-group" style="margin-top:8px">
+            <div class="rad-pill"><input type="radio" name="ocn_dir" id="od1" value="Import shipments"><label for="od1">Import</label></div>
+            <div class="rad-pill"><input type="radio" name="ocn_dir" id="od2" value="Export shipments"><label for="od2">Export</label></div>
+            <div class="rad-pill"><input type="radio" name="ocn_dir" id="od3" value="Both"><label for="od3">Both</label></div>
+          </div>
+        </div>
+        <div class="field"><label>Ocean freight services provided</label>
+          <div class="chk-group">
+            <div class="chk-pill"><input type="checkbox" id="os1" value="FCL"><label for="os1">Full Container Load (FCL)</label></div>
+            <div class="chk-pill"><input type="checkbox" id="os2" value="LCL"><label for="os2">Less than Container Load (LCL)</label></div>
+            <div class="chk-pill"><input type="checkbox" id="os3" value="Container Stuffing"><label for="os3">Container Stuffing</label></div>
+            <div class="chk-pill"><input type="checkbox" id="os4" value="Container De-Stuffing"><label for="os4">Container De-Stuffing</label></div>
+            <div class="chk-pill"><input type="checkbox" id="os5" value="Cargo Consolidation"><label for="os5">Cargo Consolidation</label></div>
+            <div class="chk-pill"><input type="checkbox" id="os6" value="Cargo Deconsolidation"><label for="os6">Cargo Deconsolidation</label></div>
+          </div>
+        </div>
+        <div class="field"><label>Work directly with shipping lines?</label>
+          <div class="rad-group" style="margin-top:8px">
+            <div class="rad-pill"><input type="radio" name="ocn_sl" id="osl_y" value="Yes"><label for="osl_y">Yes</label></div>
+            <div class="rad-pill"><input type="radio" name="ocn_sl" id="osl_n" value="No"><label for="osl_n">No</label></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LAST MILE -->
+    <div class="cond-sec" id="c_lm">
+      <div class="cond-hdr"><span>▶ Last-Mile Delivery — Capability Details</span></div>
+      <div class="cond-body">
+        <div class="field-row">
+          <div class="field"><label>City / region(s) for last-mile delivery</label><input type="text" id="lm_reg" placeholder="e.g. Lagos, Nairobi CBD"></div>
+          <div class="field"><label>Avg. deliveries per day</label><input type="number" id="lm_day" placeholder="e.g. 80"></div>
+        </div>
+        <div class="field"><label>Delivery vehicle types</label>
+          <div class="chk-group">
+            <div class="chk-pill"><input type="checkbox" id="lv1" value="Vans"><label for="lv1">Vans</label></div>
+            <div class="chk-pill"><input type="checkbox" id="lv2" value="Box Trucks"><label for="lv2">Box Trucks</label></div>
+            <div class="chk-pill"><input type="checkbox" id="lv3" value="Motorbikes"><label for="lv3">Motorbikes</label></div>
+            <div class="chk-pill"><input type="checkbox" id="lv4" value="Cars"><label for="lv4">Cars</label></div>
+            <div class="chk-pill"><input type="checkbox" id="lv5" value="Electric Delivery Vehicles"><label for="lv5">Electric Delivery Vehicles</label></div>
+          </div>
+        </div>
+        <div class="field"><label>Provide proof of delivery?</label>
+          <div class="rad-group" style="margin-top:8px">
+            <div class="rad-pill"><input type="radio" name="lm_pod" id="pod_y" value="Yes"><label for="pod_y">Yes</label></div>
+            <div class="rad-pill"><input type="radio" name="lm_pod" id="pod_n" value="No"><label for="pod_n">No</label></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARGO CONSOLIDATION -->
+    <div class="cond-sec" id="c_cgo">
+      <div class="cond-hdr"><span>▶ Cargo Consolidation / Deconsolidation — Capability Details</span></div>
+      <div class="cond-body">
+        <div class="field-row">
+          <div class="field"><label>Locations where service is provided</label><input type="text" id="cg_loc" placeholder="e.g. Lagos, Guangzhou"></div>
+          <div class="field"><label>Avg. shipments per month</label><input type="number" id="cg_mth" placeholder="e.g. 40"></div>
+        </div>
+        <div class="field"><label>Service direction</label>
+          <div class="rad-group" style="margin-top:8px">
+            <div class="rad-pill"><input type="radio" name="cg_dir" id="cgd1" value="Consolidation only"><label for="cgd1">Consolidation only</label></div>
+            <div class="rad-pill"><input type="radio" name="cg_dir" id="cgd2" value="Deconsolidation only"><label for="cgd2">Deconsolidation only</label></div>
+            <div class="rad-pill"><input type="radio" name="cg_dir" id="cgd3" value="Both"><label for="cgd3">Both</label></div>
+          </div>
+        </div>
+        <div class="field"><label>Types of cargo consolidated</label>
+          <div class="chk-group">
+            <div class="chk-pill"><input type="checkbox" id="cgt1" value="General Cargo"><label for="cgt1">General Cargo</label></div>
+            <div class="chk-pill"><input type="checkbox" id="cgt2" value="LCL Shipments"><label for="cgt2">LCL Shipments</label></div>
+            <div class="chk-pill"><input type="checkbox" id="cgt3" value="Air Cargo"><label for="cgt3">Air Cargo</label></div>
+            <div class="chk-pill"><input type="checkbox" id="cgt4" value="Temperature-Controlled"><label for="cgt4">Temperature-Controlled</label></div>
+            <div class="chk-pill"><input type="checkbox" id="cgt5" value="Dangerous Goods"><label for="cgt5">Dangerous Goods</label></div>
+          </div>
+        </div>
+        <div class="field"><label>Provide cargo labeling & documentation support?</label>
+          <div class="rad-group" style="margin-top:8px">
+            <div class="rad-pill"><input type="radio" name="cg_doc" id="cgd_y" value="Yes"><label for="cgd_y">Yes</label></div>
+            <div class="rad-pill"><input type="radio" name="cg_doc" id="cgd_n" value="No"><label for="cgd_n">No</label></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+  <!-- 04 GEOGRAPHIC -->
+  <div class="section">
+    <div class="sec-hdr"><div class="sec-num">04</div><div class="sec-title">Geographic Coverage</div></div>
+    <div class="sec-body">
+      <div class="field"><label>Primary Operating Regions <span class="req">*</span></label><input type="text" id="geoRegions" placeholder="e.g. West Africa, South-East Asia" required></div>
+      <div class="field"><label>Countries Served <span class="req">*</span></label><input type="text" id="geoCountries" placeholder="e.g. Nigeria, Ghana, Togo, Benin" required></div>
+      <div class="field"><label>Ports / Terminals Covered <span class="opt">(optional)</span></label><input type="text" id="geoPorts" placeholder="e.g. Apapa, Tin Can, Tema"></div>
+    </div>
+  </div>
+
+  <!-- 05 CAPACITY -->
+  <div class="section">
+    <div class="sec-hdr"><div class="sec-num">05</div><div class="sec-title">Operational Capacity</div></div>
+    <div class="sec-body">
+      <div class="field-row">
+        <div class="field"><label>Total Fleet Size <span class="opt">(if applicable)</span></label><input type="number" id="opFleet" placeholder="Total vehicles"></div>
+        <div class="field"><label>Total Warehouse Capacity <span class="opt">(if applicable)</span></label><input type="text" id="opWH" placeholder="e.g. 10,000 sqm"></div>
+      </div>
+      <div class="field"><label>Average Shipments Supported Per Month <span class="req">*</span></label>
+        <div class="cap-grid" id="capGrid">
+          <div class="cap-opt"><input type="radio" name="monthlyShip" id="ms1" value="1–20"><label for="ms1">1–20<small>shipments</small></label></div>
+          <div class="cap-opt"><input type="radio" name="monthlyShip" id="ms2" value="20–100"><label for="ms2">20–100<small>shipments</small></label></div>
+          <div class="cap-opt"><input type="radio" name="monthlyShip" id="ms3" value="100–500"><label for="ms3">100–500<small>shipments</small></label></div>
+          <div class="cap-opt"><input type="radio" name="monthlyShip" id="ms4" value="500+"><label for="ms4">500+<small>shipments</small></label></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  
+<div class="section">
+  <div class="sec-hdr"><div class="sec-num">06</div><div class="sec-title">Compliance, Insurance &amp; Certifications</div></div>
+  <div class="sec-body">
+    <div class="field"><label>Operating licenses</label><input type="text" id="op_lic" placeholder="Licence numbers or types"></div>
+    <div class="field"><label>Does your company have insurance coverage?</label>
+      <div class="rad-group" style="margin-top:8px">
+        <div class="rad-pill"><input type="radio" name="ins_yn" id="ins_y" value="Yes" onchange="document.getElementById('ins_detail').style.display='block'"><label for="ins_y">Yes</label></div>
+        <div class="rad-pill"><input type="radio" name="ins_yn" id="ins_n" value="No" onchange="document.getElementById('ins_detail').style.display='none'"><label for="ins_n">No</label></div>
+      </div>
+    </div>
+    <div id="ins_detail" style="display:none;margin-top:14px;padding:14px;background:#FAFAFA;border:1px solid var(--border)">
+      <div class="field"><label>Insurance coverage types</label>
+        <div class="chk-group">
+          <div class="chk-pill"><input type="checkbox" id="ic1" value="Cargo Insurance"><label for="ic1">Cargo Insurance</label></div>
+          <div class="chk-pill"><input type="checkbox" id="ic2" value="Carrier Liability"><label for="ic2">Carrier Liability</label></div>
+          <div class="chk-pill"><input type="checkbox" id="ic3" value="Freight Forwarder Liability"><label for="ic3">Freight Forwarder Liability</label></div>
+          <div class="chk-pill"><input type="checkbox" id="ic4" value="Warehouse Liability"><label for="ic4">Warehouse Liability</label></div>
+          <div class="chk-pill"><input type="checkbox" id="ic5" value="Motor Truck Cargo"><label for="ic5">Motor Truck Cargo</label></div>
+          <div class="chk-pill"><input type="checkbox" id="ic6" value="Marine Cargo"><label for="ic6">Marine Cargo</label></div>
+          <div class="chk-pill"><input type="checkbox" id="ic7" value="General Business Liability"><label for="ic7">General Business Liability</label></div>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Insurance provider name</label><input type="text" id="ins_prov" placeholder="e.g. AXA, Allianz"></div>
+        <div class="field"><label>Coverage value</label><input type="text" id="ins_val" placeholder="e.g. $500,000 USD"></div>
+      </div>
+    </div>
+    <div class="sec-div"></div>
+    <div class="field"><label>Certifications held</label>
+      <div class="chk-group">
+        <div class="chk-pill"><input type="checkbox" id="cert1" value="ISO"><label for="cert1">ISO</label></div>
+        <div class="chk-pill"><input type="checkbox" id="cert2" value="AEO"><label for="cert2">AEO</label></div>
+        <div class="chk-pill"><input type="checkbox" id="cert3" value="GDP"><label for="cert3">GDP</label></div>
+        <div class="chk-pill"><input type="checkbox" id="cert4" value="Other"><label for="cert4">Other</label></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+  <!-- 07 DECLARATION -->
+  <div class="section">
+    <div class="sec-hdr"><div class="sec-num">07</div><div class="sec-title">Declaration</div></div>
+    <div class="sec-body">
+      <div class="decl-stmt">By submitting this form, the person completing it confirms that the information provided is accurate to the best of their knowledge and that they are authorised to submit this information on behalf of the company.</div>
+      <div class="autofill">
+        <div class="af-row"><span class="af-key">Name</span><span class="af-val" id="d_name">—</span></div>
+        <div class="af-row"><span class="af-key">Position</span><span class="af-val" id="d_pos">—</span></div>
+        <div class="af-row"><span class="af-key">Company</span><span class="af-val" id="d_co">—</span></div>
+      </div>
+      <div class="field">
+        <label>Signature <span class="req">*</span> <span class="opt">(type your full name)</span></label>
+        <input type="text" id="signature" placeholder="Type your full legal name" style="font-style:italic;font-size:16px" required>
+        <div class="sig-hint">Typing your name constitutes a legally binding digital signature.</div>
+      </div>
+      <div class="field">
+        <label>Date</label>
+        <input type="text" id="declDate" readonly style="background:#f5f5f5;color:#888;cursor:default">
+      </div>
+      <div class="field">
+        <label>Upload Rate Card or Company Profile <span class="opt">(optional)</span></label>
+        <input type="file" id="fileUpload" accept=".pdf,.doc,.docx,.xls,.xlsx" style="padding:8px">
+        <div class="field-hint">PDF, Word or Excel. Max 10MB.</div>
+      </div>
+      <label class="agree-wrap" id="agreeWrap">
+        <input type="checkbox" id="agreeCheck" required>
+        <span>I confirm the information above is accurate and I am authorised to submit this application on behalf of my company. I agree to be contacted by Circuit regarding shipment opportunities.</span>
+      </label>
+      <div class="status-banner" id="statusBanner"></div>
+      <div class="submit-wrap">
+        <button type="submit" class="btn-submit" id="submitBtn">
+          <span id="btnText">Submit Application</span>
+          <div class="spinner" id="btnSpinner"></div>
+          <span id="btnArrow">→</span>
+        </button>
+      </div>
+      <div class="form-footer">Circuit Operator Network &nbsp;·&nbsp; circuit40s.com &nbsp;·&nbsp; Secure submission</div>
+    </div>
+  </div>
+
+</form>
+
+<div class="success-screen" id="successScreen">
+  <div class="success-inner">
+    <div class="success-logo"><img src="data:image/png;base64,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" alt="Circuit"></div>
+    <div class="success-title">Welcome to the <span>Circuit</span> Network</div>
+    <div class="success-line"></div>
+    <div class="success-sub">
+      Congratulations on taking the first step. Our team will review your application and be in touch within <strong>3–5 business days</strong>.<br><br>
+      A confirmation has been sent to <strong id="confirmEmail"></strong>.
+    </div>
+    <div class="success-ref">Reference: <strong id="refNum"></strong></div>
+  </div>
+</div>
+
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const rv = name => { const el = document.querySelector(`input[name="${name}"]:checked`); return el ? el.value : ''; };
+const grp = sel => [...document.querySelectorAll(sel+':checked')].map(e=>e.value).join(', ');
+
+function showToast(msg, type='') {
+  const t=$('toast'); t.textContent=msg; t.className='toast '+type; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),4000);
+}
+function genRef() { return 'CON-'+Date.now().toString(36).toUpperCase()+'-'+Math.random().toString(36).substr(2,4).toUpperCase(); }
+function setLoading(on) {
+  $('submitBtn').disabled=on;
+  $('btnSpinner').style.display=on?'flex':'none';
+  $('btnArrow').style.display=on?'none':'inline';
+  $('btnText').textContent=on?'Submitting…':'Submit Application';
+}
+function toggle(id, show) { const el=$('c_'+id); if(el) el.classList.toggle('visible',show); updateProgress(); }
+
+function updateDecl() {
+  $('d_name').textContent=$('contactName').value.trim()||'—';
+  $('d_pos').textContent=$('contactPos').value.trim()||'—';
+  $('d_co').textContent=$('companyName').value.trim()||'—';
+}
+['contactName','contactPos','companyName'].forEach(id=>$(id).addEventListener('input',updateDecl));
+$('declDate').value=new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'long',year:'numeric'});
+
+function updateProgress() {
+  const req=['companyName','regAddr','regCountry','regNum','yearEst','contactName','contactPos','contactEmail','phoneNum','geoRegions','geoCountries','signature'];
+  let n=req.filter(id=>$(id)?.value?.trim()).length;
+  if(document.querySelectorAll('#svcGrid input:checked').length) n++;
+  if(rv('monthlyShip')) n++;
+  if($('agreeCheck').checked) n++;
+  const pct=Math.round((n/(req.length+3))*100);
+  $('progFill').style.width=pct+'%';
+  $('progLbl').textContent=pct+'% Complete';
+}
+document.querySelectorAll('input,select,textarea').forEach(el=>{ el.addEventListener('change',updateProgress); el.addEventListener('input',updateProgress); });
+
+function collectData() {
+  const v=id=>($(id)||{}).value||'';
+  const svcLabels=[...document.querySelectorAll('#svcGrid input:checked')].map(el=>el.closest('label').textContent.trim()).join(', ');
+  return {
+    "Reference":"","Submitted At":new Date().toISOString(),
+    "Company Name":v('companyName'),"Registered Address":v('regAddr'),
+    "Country":v('regCountry'),"Reg Number":v('regNum'),
+    "Year Established":v('yearEst'),"Website":v('website'),
+    "Contact Name":v('contactName'),"Contact Position":v('contactPos'),
+    "Contact Email":v('contactEmail'),"Phone":v('phoneCode')+' '+v('phoneNum'),
+    "Services Provided":svcLabels,
+    "Trucking: Fleet Size":v('tr_fleet'),"Trucking: Avg Daily":v('tr_daily'),
+    "Trucking: Truck Types":grp('#tt1,#tt2,#tt3,#tt4,#tt5'),
+    "Trucking: Container Types":grp('#tc1,#tc2,#tc3'),
+    "Trucking: Special Capabilities":grp('#ts1,#ts2,#ts3,#ts4,#ts5'),
+    "Trucking: Cross-Border":rv('tr_cross'),"Trucking: GPS":rv('tr_gps'),
+    "FF: Years Experience":v('ff_yrs'),"FF: Monthly Shipments":v('ff_mth'),
+    "FF: Modes":grp('#fm1,#fm2,#fm3,#fm4,#fm5'),"FF: Trade Lanes":v('ff_lanes'),
+    "FF: Direction":rv('ff_dir'),"FF: Additional Services":grp('#fa1,#fa2,#fa3,#fa4,#fa5'),
+    "WH: Locations":v('wh_loc'),"WH: Capacity":v('wh_cap'),"WH: Monthly Volume":v('wh_vol'),
+    "WH: Bonded":rv('wh_bond'),"WH: Temp Controlled":rv('wh_temp'),
+    "WH: Services":grp('#ws1,#ws2,#ws3,#ws4,#ws5,#ws6,#ws7'),
+    "Customs: License":v('cu_lic'),"Customs: Monthly Clearances":v('cu_mth'),
+    "Customs: Countries":v('cu_ctry'),"Customs: Points":v('cu_pts'),
+    "Customs: Export":rv('cu_exp'),"Customs: Import":rv('cu_imp'),"Customs: Digital":rv('cu_dig'),
+    "Customs: Additional":grp('#ca1,#ca2,#ca3,#ca4,#ca5'),
+    "Port: Ports":v('pt_ports'),"Port: Daily Containers":v('pt_daily'),
+    "Port: Container Ops":rv('pt_cont'),"Port: Equipment":rv('pt_equip'),
+    "Port: Services":grp('#ps1,#ps2,#ps3,#ps4,#ps5,#ps6'),
+    "Drayage: Ports":v('dr_ports'),"Drayage: Daily":v('dr_daily'),
+    "Drayage: Direction":rv('dr_dir'),"Drayage: Own Chassis":rv('dr_chas'),
+    "Drayage: Additional":grp('#da1,#da2,#da3,#da4,#da5'),
+    "Air: Airports":v('air_ap'),"Air: Monthly":v('air_mth'),
+    "Air: Direction":rv('air_dir'),"Air: Cargo Types":grp('#act1,#act2,#act3,#act4,#act5'),
+    "Air: Service Type":rv('air_svc'),
+    "Ocean: Ports":v('ocn_pts'),"Ocean: Monthly":v('ocn_mth'),
+    "Ocean: Direction":rv('ocn_dir'),"Ocean: Services":grp('#os1,#os2,#os3,#os4,#os5,#os6'),
+    "Ocean: Direct Shipping Lines":rv('ocn_sl'),
+    "LastMile: Regions":v('lm_reg'),"LastMile: Daily":v('lm_day'),
+    "LastMile: Vehicles":grp('#lv1,#lv2,#lv3,#lv4,#lv5'),"LastMile: POD":rv('lm_pod'),
+    "Cargo: Locations":v('cg_loc'),"Cargo: Monthly":v('cg_mth'),
+    "Cargo: Direction":rv('cg_dir'),"Cargo: Types":grp('#cgt1,#cgt2,#cgt3,#cgt4,#cgt5'),
+    "Cargo: Documentation Support":rv('cg_doc'),
+    "Primary Regions":v('geoRegions'),"Countries Served":v('geoCountries'),"Ports Covered":v('geoPorts'),
+    "Operational Fleet":v('opFleet'),"Warehouse Capacity":v('opWH'),
+    "Monthly Shipments":rv('monthlyShip'),
+    "Operating Licenses":v('op_lic'),"Insurance":rv('ins_yn'),
+    "Insurance Types":grp('#ic1,#ic2,#ic3,#ic4,#ic5,#ic6,#ic7'),
+    "Insurance Provider":v('ins_prov'),"Insurance Value":v('ins_val'),
+    "Certifications":grp('#cert1,#cert2,#cert3,#cert4'),
+    "Signature":v('signature'),"Submission Date":v('declDate'),
+  };
+}
+
+async function sendEmail(data) {
+  if(!CONFIG.FORMSPREE_ID||CONFIG.FORMSPREE_ID==='YOUR_FORMSPREE_ID') return {ok:true,skipped:true};
+  const res=await fetch(`https://formspree.io/f/${CONFIG.FORMSPREE_ID}`,{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify({...data,_replyto:data['Contact Email'],_subject:`New Operator Application – ${data['Company Name']} [${data['Reference']}]`})});
+  return res;
+}
+async function sendSheets(data) {
+  if(!CONFIG.GOOGLE_SCRIPT_URL||CONFIG.GOOGLE_SCRIPT_URL==='YOUR_GOOGLE_SCRIPT_URL') return {ok:true,skipped:true};
+  await fetch(CONFIG.GOOGLE_SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+  return {ok:true};
+}
+
+function validate() {
+  let ok=true;
+  document.querySelectorAll('.invalid').forEach(e=>e.classList.remove('invalid'));
+  $('svcGrid').style.outline='none';
+  $('capGrid').style.outline='none';
+  $('agreeWrap').style.color='';
+  ['companyName','regAddr','regCountry','regNum','yearEst','contactName','contactPos','contactEmail','phoneNum','geoRegions','geoCountries','signature'].forEach(id=>{
+    if(!$(id)?.value?.trim()){$(id).classList.add('invalid');ok=false;}
+  });
+  if(!document.querySelectorAll('#svcGrid input:checked').length){$('svcGrid').style.outline='2px solid var(--red)';ok=false;}
+  if(!rv('monthlyShip')){$('capGrid').style.outline='2px solid var(--red)';ok=false;}
+  if(!$('agreeCheck').checked){$('agreeWrap').style.color='var(--red)';ok=false;}
+  if(!ok)(document.querySelector('.invalid')||$('svcGrid')).scrollIntoView({behavior:'smooth',block:'center'});
+  return ok;
+}
+
+$('mainForm').addEventListener('submit',async function(e){
+  e.preventDefault();
+  if(!validate()) return;
+  setLoading(true);
+  const banner=$('statusBanner');
+  banner.className='status-banner sending';
+  banner.innerHTML='<div class="spinner" style="display:flex;border-color:rgba(0,0,0,.15);border-top-color:var(--red);width:14px;height:14px;"></div>&nbsp; Submitting your application…';
+  const data=collectData();
+  data['Reference']=genRef();
+  let eOk=false,sOk=false;
+  try {
+    const [eR,sR]=await Promise.allSettled([sendEmail(data),sendSheets(data)]);
+    eOk=eR.status==='fulfilled'&&(eR.value?.ok||eR.value?.skipped);
+    sOk=sR.status==='fulfilled'&&(sR.value?.ok||sR.value?.skipped);
+  } catch(err){console.error(err);}
+  setLoading(false);
+  banner.className='status-banner';
+  if(eOk||sOk){
+    $('confirmEmail').textContent=data['Contact Email'];
+    $('refNum').textContent=data['Reference'];
+    $('mainForm').style.display='none';
+    $('successScreen').classList.add('visible');
+    $('progFill').style.width='100%';
+    $('progLbl').textContent='100% Complete';
+    window.scrollTo({top:0,behavior:'smooth'});
+  } else {
+    banner.className='status-banner error-state';
+    banner.innerHTML='⚠️ Submission failed. Please try again or email <a href="mailto:faruk.o.quadri@circuit40s.com" style="color:var(--red)">faruk.o.quadri@circuit40s.com</a>.';
+    showToast('Submission failed — please try again','error');
+  }
+});
+</script>
+
+</body>
+</html>
